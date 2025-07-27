@@ -133,6 +133,7 @@ public class LineageAction extends AnAction {
         PsiMethod method = null;
         PsiClass psiClass = null;
         String fullCode = null;
+        String dependentCode=null;
 
         if (editor != null) {
             int offset = editor.getCaretModel().getOffset();
@@ -172,8 +173,14 @@ public class LineageAction extends AnAction {
                UnitTestSettingsState settings = dialog.getSettings();
                // String fullCode = new SparkCodeCollector().collectFullMethodContext(method);
 
-                fullCode = (psiClass != null && method == null) ? new UnitTestCollector().collectFullClassContext(psiClass)
-                        : new UnitTestCollector().collectFullMethodContext(method);
+                fullCode = (psiClass != null && method == null) ? new UnitTestCollector().collectFullClassContext(psiClass,project)
+                        : new UnitTestCollector().collectFullMethodContext(psiClass,method,project,false);
+
+                dependentCode=(psiClass != null && method == null) ?
+                      new UnitTestCollector().collectFullClassDependencyContext(psiClass,project)
+            : new SparkCodeCollector().collectFullMethodContext(method);
+
+               // System.out.println("dependentCode : "+dependentCode);
 
                 if (fullCode == null || fullCode.isEmpty()) {
                     Messages.showErrorDialog("Could not collect method context.", "Collection Failed");
@@ -194,7 +201,7 @@ public class LineageAction extends AnAction {
                         TestConfig(settings.language,settings.languageVersion,
                         settings.framework,settings.sparkVersion
                         ,settings.springBootVersion,settings.testFramework,
-                        settings.mockitoVersion, settings.testFrameworkVersion,packageName,testClassName,fullCode);
+                        settings.mockitoVersion, settings.testFrameworkVersion,packageName,testClassName,fullCode,dependentCode);
 
                 String promptBuilderGeneric=DynamicTestPromptGenerator.generatePrompt(testConfig);
                 System.out.println("promptBuilderGeneric : "+promptBuilderGeneric);
